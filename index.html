@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spades Score Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Spades Score Tracker</h1>
+
+  <!-- Team & Player Setup -->
+  <div class="controls">
+    <input type="text" id="teamName" placeholder="Add Team Name" />
+    <button onclick="addTeam()">Add Team</button>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="playerName" placeholder="Add Player Name" />
+    <select id="teamSelect"></select>
+    <button onclick="addPlayer()">Add Player</button>
+  </div>
+
+  <!-- Round Navigation -->
+  <div class="round-nav">
+    <button onclick="prevRound()">⬅ Previous Round</button>
+    <span id="roundDisplay">Round 1</span>
+    <button onclick="nextRound()">Next Round ➡</button>
+  </div>
+
+  <!-- Left Panel: Players & Scores -->
+  <div class="container">
+    <div class="left-panel" id="playerBoard"></div>
+
+    <!-- Right Panel: Leaderboard -->
+    <div class="right-panel">
+      <h2>Leaderboard</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Player</th>
+            <th>Total Score</th>
+            <th>Rounds Won</th>
+          </tr>
+        </thead>
+        <tbody id="summaryTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
