@@ -4,51 +4,271 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spades Score Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #355E4C;
+      color: #fff;
+    }
+    h1 {
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      color: gold;
+      margin-top: 20px;
+      text-shadow: 2px 2px 4px black;
+    }
+    .controls, .teams, .leaderboard {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px;
+    }
+    input, select, button {
+      padding: 8px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background-color: gold;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .round-controls {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .team-card {
+      background-color: #222;
+      border: 2px solid gold;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 10px;
+      width: 45%;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+    }
+    .team-card h3 {
+      margin-top: 0;
+      color: gold;
+      font-size: 1.3rem;
+    }
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .player-row input {
+      width: 50px;
+      text-align: center;
+    }
+    .counter-btn {
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 4px 10px;
+      background: #444;
+      border: 2px solid gold;
+      border-radius: 5px;
+      color: gold;
+    }
+    .leaderboard {
+      justify-content: flex-start;
+    }
+    .leaderboard table {
+      background: #fff;
+      color: black;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .leaderboard th, .leaderboard td {
+      padding: 10px 20px;
+      border-bottom: 1px solid #ccc;
+    }
+    .leaderboard th {
+      background: gold;
+    }
+  </style>
 </head>
 <body>
-  <h1>Spades Score Tracker</h1>
 
-  <!-- Team & Player Setup -->
+  <h1>♠ Spades Score Tracker ♠</h1>
+
   <div class="controls">
-    <input type="text" id="teamName" placeholder="Add Team Name" />
+    <input id="teamName" placeholder="Add Team Name" />
     <button onclick="addTeam()">Add Team</button>
-  </div>
-
-  <div class="controls">
-    <input type="text" id="playerName" placeholder="Add Player Name" />
+    <input id="playerName" placeholder="Add Player Name" />
     <select id="teamSelect"></select>
     <button onclick="addPlayer()">Add Player</button>
   </div>
 
-  <!-- Round Navigation -->
-  <div class="round-nav">
-    <button onclick="prevRound()">⬅ Previous Round</button>
-    <span id="roundDisplay">Round 1</span>
-    <button onclick="nextRound()">Next Round ➡</button>
+  <div class="round-controls">
+    <button onclick="changeRound(-1)">⬅ Previous Round</button>
+    <span id="roundLabel">Round 1</span>
+    <button onclick="changeRound(1)">Next Round ➞</button>
   </div>
 
-  <!-- Left Panel: Players & Scores -->
-  <div class="container">
-    <div class="left-panel" id="playerBoard"></div>
+  <div class="teams" id="teamsContainer"></div>
 
-    <!-- Right Panel: Leaderboard -->
-    <div class="right-panel">
-      <h2>Leaderboard</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Team</th>
-            <th>Player</th>
-            <th>Total Score</th>
-            <th>Rounds Won</th>
-          </tr>
-        </thead>
-        <tbody id="summaryTableBody"></tbody>
-      </table>
-    </div>
+  <div class="leaderboard">
+    <table>
+      <thead>
+        <tr><th>Team</th><th>Total Score</th><th>Rounds Won</th></tr>
+      </thead>
+      <tbody id="leaderboardBody"></tbody>
+    </table>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    let round = 1;
+    let teams = [];
+
+    function addTeam() {
+      const name = document.getElementById("teamName").value.trim();
+      if (!name || teams.length >= 4) return alert("Max 4 teams allowed.");
+      teams.push({ name, players: [], scores: [], wins: 0 });
+      updateTeamSelect();
+      render();
+    }
+
+    function updateTeamSelect() {
+      const teamSelect = document.getElementById("teamSelect");
+      teamSelect.innerHTML = "";
+      teams.forEach(team => {
+        const option = document.createElement("option");
+        option.value = team.name;
+        option.textContent = team.name;
+        teamSelect.appendChild(option);
+      });
+    }
+
+    function addPlayer() {
+      const name = document.getElementById("playerName").value.trim();
+      const teamName = document.getElementById("teamSelect").value;
+      const team = teams.find(t => t.name === teamName);
+      if (!team || team.players.length >= 2) return alert("Each team must have only 2 players.");
+      team.players.push({ name, bids: {}, wins: {} });
+      render();
+    }
+
+    function render() {
+      const container = document.getElementById("teamsContainer");
+      container.innerHTML = "";
+      teams.forEach(team => {
+        const card = document.createElement("div");
+        card.className = "team-card";
+        card.innerHTML = `<h3>${team.name}</h3>`;
+
+        team.players.forEach(player => {
+          const row = document.createElement("div");
+          row.className = "player-row";
+          row.innerHTML = `
+            <strong>${player.name}</strong> Bid: 
+            <input type="number" min="0" value="${player.bids[round] || ""}" onchange="updateBid('${team.name}', '${player.name}', this.value)">
+            Won: 
+            <input type="number" min="0" value="${player.wins[round] || ""}" onchange="updateWin('${team.name}', '${player.name}', this.value)">
+            <button class="counter-btn" onclick="incrementWin('${team.name}', '${player.name}')">🔔</button>
+          `;
+          card.appendChild(row);
+        });
+
+        const scoreLine = document.createElement("div");
+        const roundScore = team.scores[round] ?? '';
+        scoreLine.textContent = `Round ${round}: ${roundScore}`;
+        scoreLine.style.marginTop = "10px";
+        card.appendChild(scoreLine);
+
+        container.appendChild(card);
+      });
+
+      document.getElementById("roundLabel").textContent = `Round ${round}`;
+      updateLeaderboard();
+    }
+
+    function updateBid(teamName, playerName, val) {
+      const team = teams.find(t => t.name === teamName);
+      const player = team.players.find(p => p.name === playerName);
+      player.bids[round] = parseInt(val);
+    }
+
+    function updateWin(teamName, playerName, val) {
+      const team = teams.find(t => t.name === teamName);
+      const player = team.players.find(p => p.name === playerName);
+      player.wins[round] = parseInt(val);
+    }
+
+    function incrementWin(teamName, playerName) {
+      const team = teams.find(t => t.name === teamName);
+      const player = team.players.find(p => p.name === playerName);
+      player.wins[round] = (player.wins[round] || 0) + 1;
+      render();
+    }
+
+    function calculateTeamScore(team) {
+      let score = 0;
+      let wins = 0;
+      for (let r = 1; r <= round; r++) {
+        const bids = team.players.map(p => +p.bids[r] || 0);
+        const won = team.players.map(p => +p.wins[r] || 0);
+        if (bids.length < 2 || won.length < 2) continue;
+
+        const totalBid = bids[0] + bids[1];
+        const totalWon = won[0] + won[1];
+
+        let roundScore;
+        if (totalWon === totalBid) roundScore = totalBid * 10;
+        else if (totalWon > totalBid) roundScore = (totalBid * 10) + (totalWon - totalBid);
+        else roundScore = (totalBid - totalWon) * -10;
+
+        team.scores[r] = roundScore;
+        score += roundScore;
+
+        // Handle round win
+        if (!team.roundWins) team.roundWins = {};
+        if (totalWon >= totalBid) team.roundWins[r] = 1;
+        else team.roundWins[r] = 0;
+      }
+      team.wins = Object.values(team.roundWins || {}).reduce((a, b) => a + b, 0);
+      return score;
+    }
+
+    function updateLeaderboard() {
+      const tbody = document.getElementById("leaderboardBody");
+      tbody.innerHTML = "";
+      teams.forEach(team => {
+        const score = calculateTeamScore(team);
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${team.name}</td><td>${score}</td><td>${team.wins}</td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    function changeRound(dir) {
+      if (dir === 1) {
+        // Validate all teams entered bids and wins for this round
+        const allEntered = teams.every(t =>
+          t.players.every(p => p.bids[round] !== undefined && p.wins[round] !== undefined)
+        );
+        if (!allEntered) return alert("Please complete all player inputs before proceeding.");
+
+        // Check if total wins == round number
+        const totalWins = teams.reduce((sum, t) => sum + (t.roundWins?.[round] || 0), 0);
+        if (totalWins !== round) return alert(`Total teams that won must equal Round ${round}. Currently: ${totalWins}`);
+
+        if (round < 13) round++;
+      } else if (round > 1) {
+        round--;
+      }
+      render();
+    }
+
+    render();
+  </script>
 </body>
 </html>
