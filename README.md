@@ -6,7 +6,7 @@ A dynamic and interactive web-based Spades game score tracker with full support 
 - 👥 Teams & Multiplayer Modes
 - 🕹 Round Navigation (e.g., Round 1, 2, 3…)
 - 📊 Real-time Leaderboard Table
-- ➕ Add / ❌ Remove scores per player
+- ➕ Add / ❌ Remove Scores per Player
 
 ---
 
