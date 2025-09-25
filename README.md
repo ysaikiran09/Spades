@@ -1,4 +1,4 @@
-# ♠️ Spades Score Tracker
+# ♠️ Spades Scores Tracker
 
 A dynamic and interactive web-based Spades game score tracker with full support for:
 
