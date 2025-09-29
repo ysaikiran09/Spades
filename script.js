@@ -125,7 +125,7 @@ function updateRoundResults() {
   });
 
   if (!valid || totalWins !== round) {
-    alert(`Invalid entry. Total team wins must equal ${round}.`);
+    alert(`Invalid entry. Total wins of both teams must equal ${round}.`);
     return false;
   }
 
